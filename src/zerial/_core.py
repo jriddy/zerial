@@ -6,7 +6,7 @@ def deztructure(inst, _dict_factory=dict):
     ret = _dict_factory()
     for field in fields:
         value = getattr(inst, field.name)
-        if attr.has(value.__class__):
+        if attr.has(field.type) or attr.has(value.__class__):
             ret[field.name] = deztructure(value, _dict_factory)
         else:
             ret[field.name] = value
