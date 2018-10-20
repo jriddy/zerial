@@ -1,4 +1,4 @@
-from .core import deztructure, reztructure
+from ._core import deztructure, reztructure
 
 __author__ = 'Josh Reed'
 __email__ = 'jriddy@gmail.com'
