@@ -4,7 +4,7 @@ import os
 import sys
 
 try:
-    from setuptools import setup
+    from setuptools import setup, find_packages
 except ImportError:
     from distutils.core import setup
 
@@ -29,10 +29,8 @@ setup(
     author='Josh Reed',
     author_email='jriddy@gmail.com',
     url='https://github.com/jriddy/zerial',
-    packages=[
-        'zerial',
-    ],
-    package_dir={'zerial': 'zerial'},
+    packages=find_packages(where='src'),
+    package_dir={'': 'src'},
     include_package_data=True,
     install_requires=[
         'attrs',
