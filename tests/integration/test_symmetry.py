@@ -3,7 +3,6 @@ import pytest
 
 from zerial import deztructure, reztructure
 
-
 @attr.s
 class Point3D(object):
     x = attr.ib(type=float)
@@ -14,22 +13,13 @@ class Point3D(object):
 p3d_obj = Point3D(0., 1., 2.)
 p3d_dct = {'x': 0., 'y': 1., 'z': 2.}
 
-
-def test_deztructure_basic():
-    assert deztructure(p3d_obj) == p3d_dct
-
-
-def test_reztrucutre_basic():
-    assert reztructure(Point3D, p3d_dct) == p3d_obj
-
-
 @attr.s
 class LineSegment3D(object):
     p1 = attr.ib(type=Point3D)
     p2 = attr.ib(type=Point3D)
 
 
-linseg_obj = LineSegment3D(
+lineseg_obj = LineSegment3D(
     Point3D(0., 1., 2.),
     Point3D(1., 2., 0.),
 )
@@ -39,9 +29,10 @@ lineseg_dct = {
 }
 
 
-def test_deztructure_recursive():
-    assert deztructure(linseg_obj) == lineseg_dct
-
-
-def test_rezstructure_recursive():
-    assert reztructure(LineSegment3D, lineseg_dct) == linseg_obj
+@pytest.mark.parametrize('typ,obj,dct', [
+    (Point3D, p3d_obj, p3d_dct),
+    (LineSegment3D, lineseg_obj, lineseg_dct),
+])
+def test_symmetrical_stucturing(typ, obj, dct):
+    assert deztructure(obj) == dct
+    assert reztructure(typ, dct) == obj
