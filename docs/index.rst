@@ -20,8 +20,5 @@ Contents:
 Feedback
 ========
 
-If you have any suggestions or questions about **zerial** feel free to email me
-at jriddy@gmail.com.
-
 If you encounter any errors or problems with **zerial**, please let me know!
 Open an Issue at the GitHub http://github.com/jriddy/zerial main repository.
