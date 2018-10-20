@@ -35,6 +35,7 @@ setup(
     package_dir={'zerial': 'zerial'},
     include_package_data=True,
     install_requires=[
+        'attrs',
     ],
     license='MIT',
     zip_safe=False,
