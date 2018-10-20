@@ -43,6 +43,5 @@ def test_deztructure_recursive():
     assert deztructure(linseg_obj) == lineseg_dct
 
 
-@pytest.mark.skip
 def test_rezstructure_recursive():
     assert reztructure(LineSegment3D, lineseg_dct) == linseg_obj
