@@ -3,7 +3,7 @@ Contributing
 ============
 
 Contributions are welcome, and they are greatly appreciated! Every
-little bit helps, and credit will always be given. 
+little bit helps, and credit will always be given.
 
 You can contribute in many ways:
 
@@ -36,7 +36,7 @@ is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-zerial could always use more documentation, whether as part of the 
+zerial could always use more documentation, whether as part of the
 official zerial docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
@@ -84,7 +84,7 @@ To get tox, just pip install it.
 
 6. Submit a pull request through the GitHub website.
 
-.. _Fork: https://github.com/Nekroze/zerial/fork
+.. _Fork: https://github.com/jriddy/zerial/fork
 
 Pull Request Guidelines
 -----------------------
@@ -95,8 +95,9 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 2.6, 2.7, and 3.3, and for PyPy.
-   Check https://travis-ci.org/jriddy/zerial 
+3. The pull request should work for Python 2.7, 3.5, and 3.6.  Other versions
+   are planned by not yet fully supported.
+   Check https://travis-ci.org/jriddy/zerial
    under pull requests for active pull requests or run the ``tox`` command and
    make sure that the tests pass for all supported Python versions.
 
