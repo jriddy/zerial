@@ -1,7 +1,7 @@
 import attr
 import pytest
 
-from zerial import deztructure, reztructure
+from zerial import deztructure, reztructure, zdata, Zequence
 
 @attr.s
 class Point3D(object):
@@ -27,6 +27,15 @@ lineseg_dct = {
     'p1': {'x': 0., 'y': 1., 'z': 2.},
     'p2': {'x': 1., 'y': 2., 'z': 0.},
 }
+
+
+@attr.s
+class NamedPlot(object):
+    name = attr.ib(type=str)
+    points = attr.ib(
+        type=list,
+        metadata=zdata(type=Zequence(Point3D)),
+    )
 
 
 @pytest.mark.parametrize('typ,obj,dct', [

@@ -34,6 +34,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'attrs',
+        'typing;python_version<"3.5"',
     ],
     license='MIT',
     zip_safe=False,
