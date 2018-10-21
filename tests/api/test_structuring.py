@@ -1,7 +1,7 @@
 import attr
 import pytest
 
-from zerial import destructure, restructure, zdata, Zequence
+from zerial import destructure, restructure, zdata, Zequence, Zariant
 
 @attr.s
 class Point3D(object):
@@ -55,6 +55,24 @@ namedplot_dct = {
         {'x': 0., 'y': 0., 'z': 1.},
     ],
 }
+
+
+SizeOptions = {'XS', 'S', 'M', 'L', 'XL'}
+
+
+@attr.s
+class LetterSize(object):
+    # TODO: define an Enum when we can handle it
+    size = attr.ib(type=str, validator=attr.validators.in_(SizeOptions))
+
+
+@attr.s
+class MeasurementsSize(object):
+    waist = attr.ib(type=int)
+    inseam = attr.ib(type=int)
+
+
+SizeVariant = Zariant([LetterSize, MeasurementsSize])
 
 
 # What is below is just a way to collect these zstructs and their destructured
