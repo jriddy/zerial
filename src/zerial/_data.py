@@ -2,7 +2,7 @@ from enum import Enum, unique
 from functools import partial
 from typing import (
     Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
-    cast,
+    cast, Union,
 )
 
 import attr
@@ -86,7 +86,7 @@ def _check_convert_zariant_types(types):
 
 
 @attr.s
-class Zariant(object):
+class Zariant(_Ztype):
     types = attr.ib(
         type=Iterable[Type],
         converter=_check_convert_zariant_types,
@@ -136,3 +136,7 @@ class Zariant(object):
         else:
             # TODO: should we pass to type_ here?
             return data[ztr.get_metakey('value')]
+
+    @property
+    def apparent_type(self):
+        return Union.__getitem__(self.types)
