@@ -31,7 +31,6 @@ class AbstractABC(ABC):
     list,
     dict,
     type(None),
-    type,
     type('RandomClass', (object,), {}),
     ConcreteABC,
 ])
@@ -40,13 +39,19 @@ def test_isconcretetype_positive(t):
 
 
 @pytest.mark.parametrize('t', [
+    type,
+    type('my_metaclass', (type,), {}),
+    lambda: None,
+    ABCMeta,
     AbstractABC,
     abc.Sequence,
     typing.Sequence,
-    # TODO: figure out how to make this test case work
-    # typing.Generic,
-    # typing.TypeVar,
-    # typing.List,
+    typing.Union,
+    typing.Generic,
+    typing.List,
+    typing.TypeVar,
+    typing.TypeVar('T'),
+    typing.NewType('Int', int),
 ])
 def test_isconcretetype_negative(t):
     assert not isconcretetype(t)

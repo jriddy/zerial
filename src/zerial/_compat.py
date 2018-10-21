@@ -1,5 +1,26 @@
+from typing import GenericMeta, TypingMeta
+
+
 def isconcretetype(t):
-    return not getattr(t, '__abstractmethods__', False)
+    """Determine if t is a concrete type.
+
+    By concrete, I mean a real, instantiatable datatype in the sense of a
+    class that produces real instance objects.  None of this ABC abstractmethod
+    mumbo-jumbo, or metaclass tomfoolery, egg-headed generic types, or wishy-
+    washy union variants.
+
+    What we want here is an honest, hardworking datatype, like God intended.
+
+    Does not work with ``typing.NewType``s.  They are concrete, and they can
+    look like types to the type checker, but they are not type-y enough for us.
+    """
+    return (
+        isinstance(t, type)
+    ) and not (
+        getattr(t, '__abstractmethods__', False) or
+        issubclass(t, type) or
+        isinstance(t, (GenericMeta, TypingMeta))
+    )
 
 
 def with_metaclass(meta, *bases):
