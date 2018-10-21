@@ -1,9 +1,13 @@
+from enum import Enum, unique
 from functools import partial
 from typing import (
-    Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence, cast
+    Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
+    cast,
 )
 
 import attr
+
+from ._compat import isconcretetype
 
 
 def zdata(ztype):
@@ -63,3 +67,45 @@ class Zequence(_Ztype, Generic[T, R, D]):
             )
         else:
             return self.restructure_factory(data)
+
+
+def _check_convert_zariant_types(types):
+    """Do the type validation before we even get anywhere.
+
+    Nothing else in Zariant makes sense without sound types.
+    """
+    types = list(types)
+    if len(types) < 2:
+        raise ValueError("Zariant requires at least 2 types.")
+    for t in types:
+        if not isconcretetype(t):
+            raise TypeError(
+                "Zariant requires concrete types, %s is not" % (t,)
+            )
+    return types
+
+
+@attr.s
+class Zariant(object):
+    types = attr.ib(
+        type=Iterable[Type],
+        converter=_check_convert_zariant_types,
+    )
+
+    _name = attr.ib(type=str)
+
+    @_name.default
+    def _gen_name(self):
+        return 'Zenum___' + '__'.join(t.__name__ for t in self.types)
+
+    _enum = attr.ib(type=Enum)
+
+    @_enum.default
+    def _make_enum(self):
+        types = self.types
+        pairs = ((t.__name__, t) for t in types)
+        return unique(Enum(self.name, pairs))
+
+    @property
+    def name(self):
+        return self._name
