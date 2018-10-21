@@ -33,29 +33,29 @@ class _Ztype(object):
 @attr.s
 class Zequence(_Ztype, Generic[T, R, D]):
     item_type = attr.ib(type=Type[T])
-    reztructure_factory = attr.ib(type=Callable[[I_T], R], default=list)
-    deztructure_factory = attr.ib(type=Callable[[I_T], D], default=list)
+    restructure_factory = attr.ib(type=Callable[[I_T], R], default=list)
+    destructure_factory = attr.ib(type=Callable[[I_T], D], default=list)
     apparent_type = attr.ib(type=Type[T])
 
     @apparent_type.default
     def default_apparent_type(self):
         return MutableSequence[self.item_type]
 
-    def deztruct(self, inst, ztr):
-        if ztr.can_ztructure(self.item_type):
-            dez = ztr.deztructure
-            return self.deztructure_factory(
+    def destruct(self, inst, ztr):
+        if ztr.can_structure(self.item_type):
+            dez = ztr.destructure
+            return self.destructure_factory(
                 dez(x) for x in inst
             )
         else:
             # TODO: are there conditions when we can just do `return inst`?
-            return self.deztructure_factory(inst)
+            return self.destructure_factory(inst)
 
-    def reztruct(self, data, ztr):
-        if ztr.can_ztructure(self.item_type):
-            rez = partial(ztr.reztructure, self.item_type)
-            return self.reztructure_factory(
+    def restruct(self, data, ztr):
+        if ztr.can_structure(self.item_type):
+            rez = partial(ztr.restructure, self.item_type)
+            return self.restructure_factory(
                 rez(x) for x in data,
             )
         else:
-            return self.reztructure_factory(data)
+            return self.restructure_factory(data)

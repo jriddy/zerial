@@ -1,7 +1,7 @@
 import attr
 import pytest
 
-from zerial import deztructure, reztructure, zdata, Zequence
+from zerial import destructure, restructure, zdata, Zequence
 
 @attr.s
 class Point3D(object):
@@ -66,7 +66,7 @@ example_ztructs = [
     (NamedPlot, namedplot_obj, namedplot_dct),
 ]
 example_ztructs_with_directions = [
-    [(typ, obj, dct, dir) for dir in ('deztructure', 'reztructure')]
+    [(typ, obj, dct, dir) for dir in ('destructure', 'restructure')]
     for typ, obj, dct in example_ztructs
 ]
 flattened_example_ztructs_with_directions = [
@@ -76,9 +76,9 @@ flattened_example_ztructs_with_directions = [
 @pytest.mark.parametrize('typ,obj,dct,dir',
                          flattened_example_ztructs_with_directions)
 def test_structuring_symmetry(typ, obj, dct, dir):
-    if dir == 'deztructure':
-        assert deztructure(obj) == dct
-    elif dir == 'reztructure':
-        assert reztructure(typ, dct) == obj
+    if dir == 'destructure':
+        assert destructure(obj) == dct
+    elif dir == 'restructure':
+        assert restructure(typ, dct) == obj
     else:
         raise ValueError("malformed test: unknown dir: %s" % (dir,))
