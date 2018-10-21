@@ -1,4 +1,7 @@
-from typing import GenericMeta, TypingMeta
+from typing import GenericMeta, TypeVar
+
+
+TypeVarMeta = type(TypeVar)
 
 
 def isconcretetype(t):
@@ -19,7 +22,7 @@ def isconcretetype(t):
     ) and not (
         getattr(t, '__abstractmethods__', False) or
         issubclass(t, type) or
-        isinstance(t, (GenericMeta, TypingMeta))
+        isinstance(t, (GenericMeta, TypeVarMeta))
     )
 
 

@@ -1,6 +1,6 @@
 from functools import partial
 from typing import (
-    Generic, Callable, TypeVar, Type, Iterable, MutableSequence, Sequence
+    Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence, cast
 )
 
 import attr
@@ -16,8 +16,8 @@ def zdata(ztype):
 
 
 T = TypeVar('T')
-R = TypeVar('R', bound=Sequence[T])
-D = TypeVar('D', bound=Sequence[T])
+R = TypeVar('R', bound=Sequence)
+D = TypeVar('D', bound=Sequence)
 I_T = Iterable[T]
 
 
@@ -32,10 +32,14 @@ class _Ztype(object):
 
 @attr.s
 class Zequence(_Ztype, Generic[T, R, D]):
-    item_type = attr.ib(type=Type[T])
-    restructure_factory = attr.ib(type=Callable[[I_T], R], default=list)
-    destructure_factory = attr.ib(type=Callable[[I_T], D], default=list)
-    apparent_type = attr.ib(type=Type[T])
+    item_type = attr.ib()  # type: Type[T]
+    restructure_factory = attr.ib(
+        default=cast(Callable[[I_T], R], list)
+    )  # type: Callable[[I_T], R]
+    destructure_factory = attr.ib(
+        default=cast(Callable[[I_T], D], list)
+    )  # type: Callable[[I_T], D]
+    apparent_type = attr.ib()  # type: Type[T]
 
     @apparent_type.default
     def default_apparent_type(self):
