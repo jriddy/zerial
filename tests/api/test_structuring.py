@@ -75,6 +75,41 @@ class MeasurementsSize(object):
 SizeVariant = Zariant([LetterSize, MeasurementsSize])
 
 
+@attr.s
+class ColoredPants(object):
+    color = attr.ib(type=str)
+    size = attr.ib(
+        type=SizeVariant.apparent_type,
+        metadata=zdata(ztype=SizeVariant),
+    )
+
+
+bluepants_obj = ColoredPants(
+    color='blue',
+    size=LetterSize('L'),
+)
+bluepants_dct = {
+    'color': 'blue',
+    'size': {
+        '%type': 'LetterSize',
+        'size': 'L',
+    },
+}
+
+redpants_obj = ColoredPants(
+    color='red',
+    size=MeasurementsSize(waist=34, inseam=32),
+)
+redpants_dct = {
+    'color': 'red',
+    'size': {
+        '%type': 'MeasurementsSize',
+        'waist': 34,
+        'inseam': 32,
+    },
+}
+
+
 # What is below is just a way to collect these zstructs and their destructured
 # dicts into a flattened list of parameters for the structuring symmetry
 # test function.  This lets "parametrize" turn each combo into a test case
@@ -82,6 +117,8 @@ example_ztructs = [
     (Point3D, p3d_obj, p3d_dct),
     (LineSegment3D, lineseg_obj, lineseg_dct),
     (NamedPlot, namedplot_obj, namedplot_dct),
+    (ColoredPants, bluepants_obj, bluepants_dct),
+    (ColoredPants, redpants_obj, redpants_dct),
 ]
 example_ztructs_with_directions = [
     [(typ, obj, dct, dir) for dir in ('destructure', 'restructure')]
