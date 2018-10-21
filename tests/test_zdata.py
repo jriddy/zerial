@@ -4,8 +4,8 @@ from zerial import zdata
 
 
 def test_zdata_takes_types():
-    zd = zdata(type=int)
-    assert zd == {'zerial': {'type': int}}
+    zd = zdata(ztype=int)
+    assert zd == {'zerial': {'ztype': int}}
 
 
 @pytest.mark.parametrize('obj', [
@@ -13,4 +13,4 @@ def test_zdata_takes_types():
 ])
 def test_zdata_rejects_non_types(obj):
     with pytest.raises(TypeError):
-        zdata(type=obj)
+        zdata(ztype=obj)

@@ -34,7 +34,7 @@ class NamedPlot(object):
     name = attr.ib(type=str)
     points = attr.ib(
         type=list,
-        metadata=zdata(type=Zequence(Point3D)),
+        metadata=zdata(ztype=Zequence(Point3D)),
     )
 
 
