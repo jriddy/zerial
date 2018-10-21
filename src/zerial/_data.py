@@ -74,7 +74,7 @@ def _check_convert_zariant_types(types):
 
     Nothing else in Zariant makes sense without sound types.
     """
-    types = list(types)
+    types = tuple(types)
     if len(types) < 2:
         raise ValueError("Zariant requires at least 2 types.")
     for t in types:
@@ -109,3 +109,30 @@ class Zariant(object):
     @property
     def name(self):
         return self._name
+
+    def _force_type(self, value):
+        if not isinstance(value, self.types):
+            raise TypeError("Value not valid for this zariant %s" % (value,))
+
+    def destruct(self, inst, ztr):
+        self._force_type(inst)  # is this necessary in light of the enum?
+        entry = self._enum(type(inst))
+        if ztr.can_structure(entry.value):
+            data = ztr.destructure(inst)
+            # TODO: dict_factory could produce immutables...think about it
+            data[ztr.get_metakey('type')] = entry.name
+            return data
+        else:
+            return ztr.dict_factory([
+                (ztr.get_metakey('type'), entry.name),
+                (ztr.get_metakey('value'), inst),
+            ])
+
+    def restruct(self, data, ztr):
+        type_name = data[ztr.get_metakey('type')]
+        type_ = self._enum[type_name].value
+        if ztr.can_structure(type_):
+            return ztr.restructure(type_, data)
+        else:
+            # TODO: should we pass to type_ here?
+            return data[ztr.get_metakey('value')]
