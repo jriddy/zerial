@@ -5,26 +5,35 @@ import attr
 class Ztructurer(object):
     dict_factory = attr.ib(default=dict)
 
+    def can_ztructure(self, inst):
+        return attr.has(inst)
+
     def deztructure(self, inst):
         fields = attr.fields(inst.__class__)
         ret = self.dict_factory()
         for field in fields:
-            value = getattr(inst, field.name)
-            if attr.has(field.type):
-                ret[field.name] = self.deztructure(value)
+            name = field.name
+            value = getattr(inst, name)
+            ztype = field.metadata.get('zerial', {}).get('ztype')
+            if ztype is not None:
+                ret[name] = ztype.deztruct(value, self)
+            elif attr.has(field.type):
+                ret[name] = self.deztructure(value)
             else:
-                ret[field.name] = value
+                ret[name] = value
         return ret
 
-
     def reztructure(self, klass, mapping):
-        # TODO: implement efficiency compat for py2 without six if possible
         fields = attr.fields(klass)
         kwargs = {}
         for field in fields:
-            data = mapping[field.name]
-            if attr.has(field.type):
-                kwargs[field.name] = self.reztructure(field.type, data)
+            name = field.name
+            data = mapping[name]
+            ztype = field.metadata.get('zerial', {}).get('ztype')
+            if ztype is not None:
+                kwargs[name] = ztype.reztruct(data, self)
+            elif attr.has(field.type):
+                kwargs[name] = self.reztructure(field.type, data)
             else:
-                kwargs[field.name] = data
+                kwargs[name] = data
         return klass(**kwargs)

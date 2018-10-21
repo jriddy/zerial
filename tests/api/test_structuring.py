@@ -37,6 +37,25 @@ class NamedPlot(object):
         metadata=zdata(ztype=Zequence(Point3D)),
     )
 
+namedplot_obj = NamedPlot(
+    name='Bobo',
+    points=[
+        Point3D(0., 0., 0.),
+        Point3D(0., 1., 0.),
+        Point3D(0., 1., 1.),
+        Point3D(0., 0., 1.),
+    ],
+)
+namedplot_dct = {
+    'name': 'Bobo',
+    'points': [
+        {'x': 0., 'y': 0., 'z': 0.},
+        {'x': 0., 'y': 1., 'z': 0.},
+        {'x': 0., 'y': 1., 'z': 1.},
+        {'x': 0., 'y': 0., 'z': 1.},
+    ],
+}
+
 
 # What is below is just a way to collect these zstructs and their destructured
 # dicts into a flattened list of parameters for the structuring symmetry
@@ -44,6 +63,7 @@ class NamedPlot(object):
 example_ztructs = [
     (Point3D, p3d_obj, p3d_dct),
     (LineSegment3D, lineseg_obj, lineseg_dct),
+    (NamedPlot, namedplot_obj, namedplot_dct),
 ]
 example_ztructs_with_directions = [
     [(typ, obj, dct, dir) for dir in ('deztructure', 'reztructure')]
