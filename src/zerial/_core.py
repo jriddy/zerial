@@ -4,9 +4,14 @@ import attr
 @attr.s
 class Ztructurer(object):
     dict_factory = attr.ib(default=dict)
+    metachar = attr.ib(type=str, default='%')
 
     def can_structure(self, inst):
         return attr.has(inst)
+
+    def get_metakey(self, key):
+        # type (str) -> str
+        return self.metachar + key
 
     def destructure(self, inst):
         fields = attr.fields(inst.__class__)

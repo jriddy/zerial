@@ -1,9 +1,9 @@
-from ._data import zdata, Zequence
+from ._data import zdata, Zequence, Zariant
 from ._core import Ztructurer
 
 __author__ = 'Josh Reed'
 __email__ = 'jriddy@gmail.com'
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 
 _the_ztructurer = Ztructurer()
@@ -16,4 +16,5 @@ __all__ = [
     'restructure',
     'zdata',
     'Zequence',
+    'Zariant',
 ]
