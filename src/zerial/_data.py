@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from enum import Enum, unique
 from functools import partial
 from typing import (
@@ -7,16 +8,17 @@ from typing import (
 
 import attr
 
-from ._compat import isconcretetype
+from ._compat import isconcretetype, with_metaclass
 
 
 def zdata(ztype):
-    # TODO: we should do something more intelligent with real types here
-    if not isinstance(ztype, (_Ztype, type)):
+    if isinstance(ztype, _Ztype):
+        pass
+    elif isinstance(ztype, type):
+        ztype = Zendthru(ztype)
+    else:
         raise TypeError("{} is not a type or valid transformer".format(ztype))
-    return {'zerial': {
-        'ztype': ztype,
-    }}
+    return {'zerial.ztype': ztype}
 
 
 T = TypeVar('T')
@@ -25,13 +27,32 @@ D = TypeVar('D', bound=Sequence)
 I_T = Iterable[T]
 
 
-class _Ztype(object):
+class _Ztype(with_metaclass(ABCMeta)):
     """ztype interface
 
-    Don't put anything concrete in it please.
-
-    Despite the name it is not an actual type, but a transfomer object.
+    Despite the name it is not an actual type, but a transfomer object.  It is
+    meant to be stored as metadata on record types and extracted to use in
+    structuring operations.
     """
+    @abstractmethod
+    def destruct(self, inst, ztr):
+        """Unstructure inst into a mapping.
+
+        The Ztructurer doing the destructuring is passed for its options and to
+        permit further recursive descent if necessary.
+
+        Works with the Ztructurer to take apart more complex types.
+        """
+
+    @abstractmethod
+    def restruct(self, mapping, ztr):
+        """Structure the mapping into the appropriate type.
+
+        The Ztructurer doing the rebuilding is passed for its options and to
+        permit recursive rebuilding if needed.
+
+        Works with Ztructurer to rebuild more complext types.
+        """
 
 
 @attr.s
@@ -140,3 +161,22 @@ class Zariant(_Ztype):
     @property
     def apparent_type(self):
         return Union.__getitem__(self.types)
+
+
+@attr.s
+class Zendthru(_Ztype):
+    pass_type = attr.ib(type=type)
+
+    def _check_type(self, inst):
+        if not isinstance(inst, self.pass_type):
+            raise TypeError(
+                '{!r} is not an instance of {!r}'.format(inst, self.pass_type)
+            )
+
+    def destruct(self, inst, _ztr):
+        self._check_type(inst)
+        return inst
+
+    def restruct(self, data, _ztr):
+        self._check_type(data)
+        return data
