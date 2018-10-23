@@ -19,7 +19,7 @@ class Ztructurer(object):
         for field in fields:
             name = field.name
             value = getattr(inst, name)
-            ztype = field.metadata.get('zerial', {}).get('ztype')
+            ztype = field.metadata.get('zerial.ztype')
             if ztype is not None:
                 ret[name] = ztype.destruct(value, self)
             elif attr.has(field.type):
@@ -34,7 +34,7 @@ class Ztructurer(object):
         for field in fields:
             name = field.name
             data = mapping[name]
-            ztype = field.metadata.get('zerial', {}).get('ztype')
+            ztype = field.metadata.get('zerial.ztype')
             if ztype is not None:
                 kwargs[name] = ztype.restruct(data, self)
             elif attr.has(field.type):

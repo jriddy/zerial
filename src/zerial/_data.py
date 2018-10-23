@@ -11,12 +11,13 @@ from ._compat import isconcretetype
 
 
 def zdata(ztype):
-    # TODO: we should do something more intelligent with real types here
-    if not isinstance(ztype, (_Ztype, type)):
+    if isinstance(ztype, _Ztype):
+        pass
+    elif isinstance(ztype, type):
+        ztype = Zendthru(ztype)
+    else:
         raise TypeError("{} is not a type or valid transformer".format(ztype))
-    return {'zerial': {
-        'ztype': ztype,
-    }}
+    return {'zerial.ztype': ztype}
 
 
 T = TypeVar('T')

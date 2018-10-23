@@ -1,11 +1,17 @@
 import pytest
 
-from zerial import zdata
+from zerial._data import zdata, Zendthru, Zariant
 
 
-def test_zdata_takes_types():
+def test_zdata_takes_regular_types_as_zendthrus():
     zd = zdata(ztype=int)
-    assert zd == {'zerial': {'ztype': int}}
+    assert zd == {'zerial.ztype': Zendthru(int)}
+
+
+def test_zdata_leaves_ztypes_just_there():
+    Zif = Zariant([int, float])
+    zd = zdata(ztype=Zif)
+    assert zd == {'zerial.ztype': Zif}
 
 
 @pytest.mark.parametrize('obj', [
