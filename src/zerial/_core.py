@@ -5,6 +5,10 @@ import attr
 class Ztructurer(object):
     dict_factory = attr.ib(default=dict)
     metachar = attr.ib(type=str, default='%')
+    permitted_passthrus = attr.ib(type=tuple, default=(
+        # basically defined by what JSON understands, minus null==None
+        bool, int, float, str,
+    ))
 
     def can_structure(self, inst):
         return attr.has(inst)
@@ -24,8 +28,10 @@ class Ztructurer(object):
                 ret[name] = ztype.destruct(value, self)
             elif attr.has(field.type):
                 ret[name] = self.destructure(value)
-            else:
+            elif self.can_pass_thru(value):
                 ret[name] = value
+            else:
+                raise TypeError("cannot destructure {!r}".format(value))
         return ret
 
     def restructure(self, klass, mapping):
@@ -42,3 +48,6 @@ class Ztructurer(object):
             else:
                 kwargs[name] = data
         return klass(**kwargs)
+
+    def can_pass_thru(self, val):
+        return isinstance(val, self.permitted_passthrus)
