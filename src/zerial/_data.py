@@ -1,3 +1,4 @@
+from abc import ABCMeta, abstractmethod
 from enum import Enum, unique
 from functools import partial
 from typing import (
@@ -7,7 +8,7 @@ from typing import (
 
 import attr
 
-from ._compat import isconcretetype
+from ._compat import isconcretetype, with_metaclass
 
 
 def zdata(ztype):
@@ -26,13 +27,32 @@ D = TypeVar('D', bound=Sequence)
 I_T = Iterable[T]
 
 
-class _Ztype(object):
+class _Ztype(with_metaclass(ABCMeta)):
     """ztype interface
 
-    Don't put anything concrete in it please.
-
-    Despite the name it is not an actual type, but a transfomer object.
+    Despite the name it is not an actual type, but a transfomer object.  It is
+    meant to be stored as metadata on record types and extracted to use in
+    structuring operations.
     """
+    @abstractmethod
+    def destruct(self, inst, ztr):
+        """Unstructure inst into a mapping.
+
+        The Ztructurer doing the destructuring is passed for its options and to
+        permit further recursive descent if necessary.
+
+        Works with the Ztructurer to take apart more complex types.
+        """
+
+    @abstractmethod
+    def restruct(self, mapping, ztr):
+        """Structure the mapping into the appropriate type.
+
+        The Ztructurer doing the rebuilding is passed for its options and to
+        permit recursive rebuilding if needed.
+
+        Works with Ztructurer to rebuild more complext types.
+        """
 
 
 @attr.s
