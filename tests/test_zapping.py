@@ -31,3 +31,17 @@ def test_destruct_zapping_recursive_simple(ztr):
         'B': {'state': 66},
         'C': {'state': 67},
     }
+
+
+def test_restruct_zapping_any_key(ztr):
+    zap = Zapping.anykey(Counter)
+    data = {str(n) if n & 1 else n: {'state': n} for n in range(1, 25, 5)}
+    obj = zap.restruct(data, ztr)
+    assert obj == {k: Counter(v['state']) for k, v in data.items()}
+
+
+def test_restruct_simple_type(ztr):
+    zap = Zapping(int, str)
+    data = {1: 'a', 2: 'b', 3: 'c'}
+    obj = zap.restruct(data, ztr)
+    assert obj == data

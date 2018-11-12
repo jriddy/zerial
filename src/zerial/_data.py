@@ -105,16 +105,24 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
         return cls(Any, *args, **kwds)
 
     def destruct(self, inst, ztr):
+        ident = lambda x: x
         can = ztr.can_structure
         dez = ztr.destructure
         types = (self.key_type, self.val_type)
-        keyf, valf = (dez if can(t) else lambda x: x for t in types)
+        keyf, valf = (dez if can(t) else ident for t in types)
         return self.destructure_factory(
             (keyf(k), valf(v)) for k, v in inst.items()
         )
 
     def restruct(self, mapping, ztr):
-        pass
+        skident = lambda _, x: x
+        can = ztr.can_structure
+        rez = ztr.restructure
+        Key, Val = self.key_type, self.val_type
+        keyf, valf = (rez if can(t) else skident for t in (Key, Val))
+        return self.restructure_factory(
+            (keyf(Key, k), valf(Val, v)) for k, v in mapping.items()
+        )
 
 
 def _check_convert_zariant_types(types):
