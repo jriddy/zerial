@@ -28,6 +28,7 @@ def test_destruct_recursive_simple(ztr):
     dez = zeq.destruct(val, ztr)
     assert dez == [{'state': x} for x in range(3)]
 
+
 def test_restruct_simple_type(ztr):
     zeq = Zequence(str)
     dat = ['abc', 'def', 'ghi']

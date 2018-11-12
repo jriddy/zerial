@@ -3,6 +3,7 @@ import pytest
 
 from zerial import destructure, restructure, zdata, Zequence, Zariant
 
+
 @attr.s
 class Point3D(object):
     x = attr.ib(type=float)
@@ -12,6 +13,7 @@ class Point3D(object):
 
 p3d_obj = Point3D(0., 1., 2.)
 p3d_dct = {'x': 0., 'y': 1., 'z': 2.}
+
 
 @attr.s
 class LineSegment3D(object):
@@ -36,6 +38,7 @@ class NamedPlot(object):
         type=list,
         metadata=zdata(ztype=Zequence(Point3D)),
     )
+
 
 namedplot_obj = NamedPlot(
     name='Bobo',
@@ -127,6 +130,7 @@ example_ztructs_with_directions = [
 flattened_example_ztructs_with_directions = [
     x for xs in example_ztructs_with_directions for x in xs
 ]
+
 
 @pytest.mark.parametrize('typ,obj,dct,dir',
                          flattened_example_ztructs_with_directions)

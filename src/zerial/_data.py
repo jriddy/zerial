@@ -3,7 +3,7 @@ from enum import Enum, unique
 from functools import partial
 from typing import (
     Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
-    cast, Union,
+    cast, Union, Tuple, Any,
 )
 
 import attr
@@ -24,7 +24,10 @@ def zdata(ztype):
 T = TypeVar('T')
 R = TypeVar('R', bound=Sequence)
 D = TypeVar('D', bound=Sequence)
+K = TypeVar('K')
+V = TypeVar('V')
 I_T = Iterable[T]
+I_KV = Iterable[Tuple[K, V]]
 
 
 class _Ztype(with_metaclass(ABCMeta)):
@@ -73,9 +76,7 @@ class Zequence(_Ztype, Generic[T, R, D]):
     def destruct(self, inst, ztr):
         if ztr.can_structure(self.item_type):
             dez = ztr.destructure
-            return self.destructure_factory(
-                dez(x) for x in inst
-            )
+            return self.destructure_factory(dez(x) for x in inst)
         else:
             # TODO: are there conditions when we can just do `return inst`?
             return self.destructure_factory(inst)
@@ -83,11 +84,45 @@ class Zequence(_Ztype, Generic[T, R, D]):
     def restruct(self, data, ztr):
         if ztr.can_structure(self.item_type):
             rez = partial(ztr.restructure, self.item_type)
-            return self.restructure_factory(
-                rez(x) for x in data,
-            )
+            return self.restructure_factory(rez(x) for x in data)
         else:
             return self.restructure_factory(data)
+
+
+@attr.s
+class Zapping(_Ztype, Generic[K, V, R, D]):
+    key_type = attr.ib(type=Type[K])
+    val_type = attr.ib(type=Type[V])
+    restructure_factory = attr.ib(
+        default=cast(Callable[[I_KV], R], dict)
+    )  # type: Callable[[I_KV], R]
+    destructure_factory = attr.ib(
+        default=cast(Callable[[I_KV], D], dict)
+    )  # type: Callable[[I_KV], D]
+
+    @classmethod
+    def anykey(cls, *args, **kwds):
+        return cls(Any, *args, **kwds)
+
+    def destruct(self, inst, ztr):
+        ident = lambda x: x
+        can = ztr.can_structure
+        dez = ztr.destructure
+        types = (self.key_type, self.val_type)
+        keyf, valf = (dez if can(t) else ident for t in types)
+        return self.destructure_factory(
+            (keyf(k), valf(v)) for k, v in inst.items()
+        )
+
+    def restruct(self, mapping, ztr):
+        skident = lambda _, x: x
+        can = ztr.can_structure
+        rez = ztr.restructure
+        Key, Val = self.key_type, self.val_type
+        keyf, valf = (rez if can(t) else skident for t in (Key, Val))
+        return self.restructure_factory(
+            (keyf(Key, k), valf(Val, v)) for k, v in mapping.items()
+        )
 
 
 def _check_convert_zariant_types(types):
