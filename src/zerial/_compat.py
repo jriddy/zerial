@@ -1,7 +1,9 @@
-from typing import GenericMeta, TypeVar
+from typing import Generic, TypeVar
 
 
 TypeVarMeta = type(TypeVar)
+if TypeVarMeta is type:
+    TypeVarMeta = type('fake_metatype', (type,), {})
 
 
 def isconcretetype(t):
@@ -22,7 +24,10 @@ def isconcretetype(t):
     ) and not (
         getattr(t, '__abstractmethods__', False) or
         issubclass(t, type) or
-        isinstance(t, (GenericMeta, TypeVarMeta))
+        t is Generic or
+        t is TypeVar or
+        isinstance(t, TypeVarMeta) or
+        getattr(t, '__parameters__', None)
     )
 
 
