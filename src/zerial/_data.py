@@ -205,7 +205,9 @@ class Zendthru(_Ztype):
     def _check_type(self, inst):
         if not isinstance(inst, self.pass_type):
             raise TypeError(
-                '{!r} is not an instance of {!r}'.format(inst, self.pass_type)
+                '{!r} is an instance of {!r}, not {!r}'.format(
+                    inst, type(inst), self.pass_type,
+                )
             )
 
     def destruct(self, inst, _ztr):
