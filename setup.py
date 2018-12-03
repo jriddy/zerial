@@ -23,7 +23,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='zerial',
-    version='0.1.4',
+    version='0.1.5',
     description='Stuct and destructure complex classes',
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author='Josh Reed',
