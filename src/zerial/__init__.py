@@ -1,4 +1,4 @@
-from ._data import zdata, Zequence, Zapping, Zariant
+from ._data import zdata, Zequence, Zapping, Zariant, Zerializer
 from ._core import Ztructurer
 
 __author__ = 'Josh Reed'
@@ -16,7 +16,8 @@ __all__ = [
     'restructure',
     'Ztructurer',
     'zdata',
-    'Zequence',
     'Zapping',
     'Zariant',
+    'Zequence',
+    'Zerializer',
 ]
