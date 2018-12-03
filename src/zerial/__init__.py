@@ -14,6 +14,7 @@ restructure = _the_ztructurer.restructure
 __all__ = [
     'destructure',
     'restructure',
+    'Ztructurer',
     'zdata',
     'Zequence',
     'Zapping',

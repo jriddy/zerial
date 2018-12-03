@@ -7,7 +7,7 @@ from zerial._data import Zapping
 
 
 def test_destruct_simple_dict(ztr):
-    zap = Zapping(str, str)
+    zap = Zapping(int, str)
     dct = {1: 'a', 2: 'b', 3: 'c'}
     dez = zap.destruct(dct, ztr)
     assert dez == {str(k): v for k, v in dct.items()}
@@ -31,9 +31,9 @@ def test_destruct_zapping_recursive_simple(ztr):
 
 def test_restruct_zapping_int_key(ztr):
     zap = Zapping(int, Counter)
-    data = {n: {'state': n} for n in range(1, 25, 5)}
+    data = {str(n): {'state': n} for n in range(1, 25, 5)}
     obj = zap.restruct(data, ztr)
-    assert obj == {k: Counter(v['state']) for k, v in data.items()}
+    assert obj == {int(k): Counter(v['state']) for k, v in data.items()}
 
 
 def test_restruct_simple_type(ztr):

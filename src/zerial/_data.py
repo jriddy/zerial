@@ -114,13 +114,12 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
         )
 
     def restruct(self, mapping, ztr):
-        skident = lambda _, x: x
-        can = ztr.can_structure
-        rez = ztr.restructure
         Key, Val = self.key_type, self.val_type
-        keyf, valf = (rez if can(t) else skident for t in (Key, Val))
+        valf = (ztr.restructure
+                if ztr.can_structure(Val) else
+                lambda _, x: Val(x))
         return self.restructure_factory(
-            (keyf(Key, k), valf(Val, v)) for k, v in mapping.items()
+            (Key(k), valf(Val, v)) for k, v in mapping.items()
         )
 
 
