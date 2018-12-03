@@ -22,6 +22,7 @@ def zdata(ztype):
 
 
 T = TypeVar('T')
+U = TypeVar('U')
 R = TypeVar('R', bound=Sequence)
 D = TypeVar('D', bound=Sequence)
 K = TypeVar('K')
@@ -121,6 +122,19 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
         return self.restructure_factory(
             (Key(k), valf(Val, v)) for k, v in mapping.items()
         )
+
+
+@attr.s
+class Zerializer(_Ztype, Generic[T, U]):
+    """When you just need a serializer that goes forward and back."""
+    to_outer = attr.ib(type=Callable[[T], U])
+    to_inner = attr.ib(type=Callable[[U], T])
+
+    def destruct(self, inst, _):
+        return self.to_outer(inst)
+
+    def restruct(self, data, _):
+        return self.to_inner(data)
 
 
 def _check_convert_zariant_types(types):

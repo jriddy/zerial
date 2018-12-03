@@ -1,7 +1,9 @@
 import attr
 import pytest
 
-from zerial import destructure, restructure, zdata, Zequence, Zariant, Zapping
+from zerial import (
+    destructure, restructure, zdata, Zequence, Zariant, Zapping, Zerializer,
+)
 
 
 @attr.s
@@ -134,6 +136,25 @@ capture_table_dct = {
         '5': 'five;E',
         '12': 'twelve;L',
     },
+}
+
+
+range_zerializer = Zerializer(
+    lambda rng: [rng.start, rng.stop, rng.step],
+    lambda lst: range(*lst),
+)
+
+
+@attr.s
+class RangeContainer(object):
+    indices = attr.ib(type=range, metadata=zdata(range_zerializer))
+    identifiers = attr.ib(type=range, metadata=zdata(range_zerializer))
+
+
+range_container_obj = RangeContainer(range(1, 10), range(28, 21, -1))
+range_container_dct = {
+    'indices': [1, 10, 1],
+    'identifiers': [28, 21, -1],
 }
 
 
