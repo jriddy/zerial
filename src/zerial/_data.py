@@ -3,7 +3,7 @@ from enum import Enum, unique
 from functools import partial
 from typing import (
     Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
-    cast, Union, Tuple, Any,
+    cast, Union, Tuple,
 )
 
 import attr
@@ -91,6 +91,12 @@ class Zequence(_Ztype, Generic[T, R, D]):
 
 @attr.s
 class Zapping(_Ztype, Generic[K, V, R, D]):
+    """Ztype wrapper for a simple mapping/dict
+
+    Since many serialization formats require that keys for mappings be strings,
+    we require that the key_type be convertible to-and-from string.  This
+    limits us to pretty primitive types, like int and str.
+    """
     key_type = attr.ib(type=Type[K])
     val_type = attr.ib(type=Type[V])
     restructure_factory = attr.ib(
@@ -100,28 +106,20 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
         default=cast(Callable[[I_KV], D], dict)
     )  # type: Callable[[I_KV], D]
 
-    @classmethod
-    def anykey(cls, *args, **kwds):
-        return cls(Any, *args, **kwds)
-
     def destruct(self, inst, ztr):
         ident = lambda x: x
-        can = ztr.can_structure
-        dez = ztr.destructure
-        types = (self.key_type, self.val_type)
-        keyf, valf = (dez if can(t) else ident for t in types)
+        dez = ztr.destructure if ztr.can_structure(self.val_type) else ident
         return self.destructure_factory(
-            (keyf(k), valf(v)) for k, v in inst.items()
+            (str(k), dez(v)) for k, v in inst.items()
         )
 
     def restruct(self, mapping, ztr):
-        skident = lambda _, x: x
-        can = ztr.can_structure
-        rez = ztr.restructure
         Key, Val = self.key_type, self.val_type
-        keyf, valf = (rez if can(t) else skident for t in (Key, Val))
+        valf = (ztr.restructure
+                if ztr.can_structure(Val) else
+                lambda _, x: Val(x))
         return self.restructure_factory(
-            (keyf(Key, k), valf(Val, v)) for k, v in mapping.items()
+            (Key(k), valf(Val, v)) for k, v in mapping.items()
         )
 
 
@@ -205,7 +203,9 @@ class Zendthru(_Ztype):
     def _check_type(self, inst):
         if not isinstance(inst, self.pass_type):
             raise TypeError(
-                '{!r} is not an instance of {!r}'.format(inst, self.pass_type)
+                '{!r} is an instance of {!r}, not {!r}'.format(
+                    inst, type(inst), self.pass_type,
+                )
             )
 
     def destruct(self, inst, _ztr):

@@ -1,7 +1,7 @@
 import attr
 import pytest
 
-from zerial import destructure, restructure, zdata, Zequence, Zariant
+from zerial import destructure, restructure, zdata, Zequence, Zariant, Zapping
 
 
 @attr.s
@@ -113,6 +113,30 @@ redpants_dct = {
 }
 
 
+@attr.s
+class CaptureTable(object):
+    name = attr.ib(type=str)
+    captures = attr.ib(type=dict, metadata=zdata(Zapping(int, str)))
+
+
+capture_table_obj = CaptureTable(
+    name='caps-01',
+    captures={
+        1: 'one;A',
+        5: 'five;E',
+        12: 'twelve;L',
+    }
+)
+capture_table_dct = {
+    'name': 'caps-01',
+    'captures': {
+        '1': 'one;A',
+        '5': 'five;E',
+        '12': 'twelve;L',
+    },
+}
+
+
 # What is below is just a way to collect these zstructs and their destructured
 # dicts into a flattened list of parameters for the structuring symmetry
 # test function.  This lets "parametrize" turn each combo into a test case
@@ -122,6 +146,7 @@ example_ztructs = [
     (NamedPlot, namedplot_obj, namedplot_dct),
     (ColoredPants, bluepants_obj, bluepants_dct),
     (ColoredPants, redpants_obj, redpants_dct),
+    (CaptureTable, capture_table_obj, capture_table_dct),
 ]
 example_ztructs_with_directions = [
     [(typ, obj, dct, dir) for dir in ('destructure', 'restructure')]

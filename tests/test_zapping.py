@@ -6,15 +6,11 @@ import pytest
 from zerial._data import Zapping
 
 
-def test_anykey_is_wrapper_around_key_type():
-    assert Zapping.anykey(int) == Zapping(Any, int)
-
-
 def test_destruct_simple_dict(ztr):
-    zap = Zapping.anykey(int, str)
+    zap = Zapping(int, str)
     dct = {1: 'a', 2: 'b', 3: 'c'}
     dez = zap.destruct(dct, ztr)
-    assert dez == dct
+    assert dez == {str(k): v for k, v in dct.items()}
 
 
 @attr.s
@@ -33,11 +29,11 @@ def test_destruct_zapping_recursive_simple(ztr):
     }
 
 
-def test_restruct_zapping_any_key(ztr):
-    zap = Zapping.anykey(Counter)
-    data = {str(n) if n & 1 else n: {'state': n} for n in range(1, 25, 5)}
+def test_restruct_zapping_int_key(ztr):
+    zap = Zapping(int, Counter)
+    data = {str(n): {'state': n} for n in range(1, 25, 5)}
     obj = zap.restruct(data, ztr)
-    assert obj == {k: Counter(v['state']) for k, v in data.items()}
+    assert obj == {int(k): Counter(v['state']) for k, v in data.items()}
 
 
 def test_restruct_simple_type(ztr):
