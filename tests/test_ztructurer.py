@@ -38,3 +38,23 @@ def test_cannot_destructure_objecty_adhoc_record(ztr, val):
     with pytest.raises(TypeError) as einfo:
         ztr.destructure(ex)
     assert str(einfo.value).startswith('cannot destructure')
+
+
+@attr.s
+class Ex2(object):
+    public = attr.ib()
+    _protected = attr.ib()
+    __private = attr.ib()
+    __dunder__ = attr.ib()
+
+
+def test_format_field_name(ztr):
+    ex2_obj = Ex2(1, 2, 3, 4)
+    ex2_dct = {
+        'public': 1,
+        'protected': 2,
+        'Ex2__private': 3,
+        'dunder__': 4,
+    }
+    assert ztr.destructure(ex2_obj) == ex2_dct
+    assert ztr.restructure(Ex2, ex2_dct) == ex2_obj
