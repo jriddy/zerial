@@ -9,9 +9,7 @@ class Ztructurer(object):
         # basically defined by what JSON understands, minus null==None
         bool, int, float, str,
     ))
-
-    def can_structure(self, inst):
-        return attr.has(inst)
+    can_structure = attr.ib(default=attr.has)
 
     def get_metakey(self, key):
         # type (str) -> str
@@ -22,14 +20,15 @@ class Ztructurer(object):
         ret = self.dict_factory()
         for field in fields:
             name = field.name
+            key = name.lstrip('_')
             value = getattr(inst, name)
             ztype = field.metadata.get('zerial.ztype')
             if ztype is not None:
-                ret[name] = ztype.destruct(value, self)
+                ret[key] = ztype.destruct(value, self)
             elif attr.has(field.type):
-                ret[name] = self.destructure(value)
+                ret[key] = self.destructure(value)
             elif self.can_pass_thru(value):
-                ret[name] = value
+                ret[key] = value
             else:
                 raise TypeError("cannot destructure {!r}".format(value))
         return ret
@@ -39,14 +38,15 @@ class Ztructurer(object):
         kwargs = {}
         for field in fields:
             name = field.name
-            data = mapping[name]
+            key = name.lstrip('_')
+            data = mapping[key]
             ztype = field.metadata.get('zerial.ztype')
             if ztype is not None:
-                kwargs[name] = ztype.restruct(data, self)
+                kwargs[key] = ztype.restruct(data, self)
             elif attr.has(field.type):
-                kwargs[name] = self.restructure(field.type, data)
+                kwargs[key] = self.restructure(field.type, data)
             else:
-                kwargs[name] = data
+                kwargs[key] = data
         return klass(**kwargs)
 
     def can_pass_thru(self, val):

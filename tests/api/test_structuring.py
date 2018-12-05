@@ -69,6 +69,7 @@ SizeOptions = {'XS', 'S', 'M', 'L', 'XL'}
 class LetterSize(object):
     # TODO: define an Enum when we can handle it
     size = attr.ib(type=str, validator=attr.validators.in_(SizeOptions))
+    _lang = attr.ib(type=str, default='en')
 
 
 @attr.s
@@ -98,6 +99,7 @@ bluepants_dct = {
     'size': {
         '%type': 'LetterSize',
         'size': 'L',
+        'lang': 'en',
     },
 }
 
