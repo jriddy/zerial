@@ -41,3 +41,15 @@ def test_restruct_recursive_simple(ztr):
     data = [{'state': x} for x in range(5)]
     obj = zeq.restruct(data, ztr)
     assert obj == [Counter(x) for x in range(5)]
+
+
+def test_destruct_nested_zequence(ztr):
+    zeq = Zequence(Zequence(int))
+    data = ((1, 5, 9), (2,), (), (18, -19))
+    assert zeq.destruct(data, ztr) == [list(xs) for xs in data]
+
+
+def test_restruct_nested_zequence(ztr):
+    zeq = Zequence(Zequence(str, tuple), set)
+    data = [["a"], ["b", "c"], [], ["c", "b"]]
+    assert zeq.restruct(data, ztr) == {("a",), ("b", "c"), (), ("c", "b")}

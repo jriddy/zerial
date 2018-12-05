@@ -3,7 +3,7 @@ from enum import Enum, unique
 from functools import partial
 from typing import (
     Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
-    cast, Union, Tuple,
+    cast, Union, Tuple, MutableMapping, Any,
 )
 
 import attr
@@ -38,6 +38,8 @@ class _Ztype(with_metaclass(ABCMeta)):
     meant to be stored as metadata on record types and extracted to use in
     structuring operations.
     """
+    apparent_type = Any
+
     @abstractmethod
     def destruct(self, inst, ztr):
         """Unstructure inst into a mapping.
@@ -61,7 +63,7 @@ class _Ztype(with_metaclass(ABCMeta)):
 
 @attr.s
 class Zequence(_Ztype, Generic[T, R, D]):
-    item_type = attr.ib()  # type: Type[T]
+    item_type = attr.ib()  # type: Union[Type[T], _Ztype]
     restructure_factory = attr.ib(
         default=cast(Callable[[I_T], R], list)
     )  # type: Callable[[I_T], R]
@@ -72,10 +74,18 @@ class Zequence(_Ztype, Generic[T, R, D]):
 
     @apparent_type.default
     def default_apparent_type(self):
-        return MutableSequence[self.item_type]
+        # TODO: remove apparent types maybe?  or ship our own mypy plugin
+        itype = self.item_type
+        if isinstance(itype, _Ztype):
+            itype = itype.apparent_type
+        return MutableSequence[itype]
 
     def destruct(self, inst, ztr):
-        if ztr.can_structure(self.item_type):
+        itype = self.item_type
+        if isinstance(itype, _Ztype):
+            dez = itype.destruct
+            return self.destructure_factory(dez(x, ztr) for x in inst)
+        elif ztr.can_structure(self.item_type):
             dez = ztr.destructure
             return self.destructure_factory(dez(x) for x in inst)
         else:
@@ -83,6 +93,10 @@ class Zequence(_Ztype, Generic[T, R, D]):
             return self.destructure_factory(inst)
 
     def restruct(self, data, ztr):
+        itype = self.item_type
+        if isinstance(itype, _Ztype):
+            rez = itype.restruct
+            return self.restructure_factory(rez(x, ztr) for x in data)
         if ztr.can_structure(self.item_type):
             rez = partial(ztr.restructure, self.item_type)
             return self.restructure_factory(rez(x) for x in data)
@@ -106,6 +120,7 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
     destructure_factory = attr.ib(
         default=cast(Callable[[I_KV], D], dict)
     )  # type: Callable[[I_KV], D]
+    apparent_type = attr.ib(default=MutableMapping)
 
     def destruct(self, inst, ztr):
         ident = lambda x: x

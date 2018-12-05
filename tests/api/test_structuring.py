@@ -120,24 +120,34 @@ redpants_dct = {
 @attr.s
 class CaptureTable(object):
     name = attr.ib(type=str)
-    captures = attr.ib(type=dict, metadata=zdata(Zapping(int, str)))
+    captures = attr.ib(metadata=zdata(Zequence(Zapping(int, str))))
 
 
 capture_table_obj = CaptureTable(
     name='caps-01',
-    captures={
-        1: 'one;A',
-        5: 'five;E',
-        12: 'twelve;L',
-    }
+    captures=[
+        {
+            1: 'one;A',
+            5: 'five;E',
+            12: 'twelve;L',
+        },
+        {
+            18: 'eighteen;S',
+        },
+    ],
 )
 capture_table_dct = {
     'name': 'caps-01',
-    'captures': {
-        '1': 'one;A',
-        '5': 'five;E',
-        '12': 'twelve;L',
-    },
+    'captures': [
+        {
+            '1': 'one;A',
+            '5': 'five;E',
+            '12': 'twelve;L',
+        },
+        {
+            '18': 'eighteen;S',
+        }
+    ],
 }
 
 
