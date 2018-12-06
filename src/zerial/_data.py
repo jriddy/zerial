@@ -1,14 +1,14 @@
-from abc import ABCMeta, abstractmethod
 from enum import Enum, unique
 from functools import partial
 from typing import (
     Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
-    cast, Union, Tuple,
+    cast, Union, Tuple, MutableMapping
 )
 
 import attr
 
-from ._compat import isconcretetype, with_metaclass
+from ._base import Ztype as _Ztype
+from ._compat import isconcretetype
 
 
 def zdata(ztype):
@@ -31,37 +31,9 @@ I_T = Iterable[T]
 I_KV = Iterable[Tuple[K, V]]
 
 
-class _Ztype(with_metaclass(ABCMeta)):
-    """ztype interface
-
-    Despite the name it is not an actual type, but a transfomer object.  It is
-    meant to be stored as metadata on record types and extracted to use in
-    structuring operations.
-    """
-    @abstractmethod
-    def destruct(self, inst, ztr):
-        """Unstructure inst into a mapping.
-
-        The Ztructurer doing the destructuring is passed for its options and to
-        permit further recursive descent if necessary.
-
-        Works with the Ztructurer to take apart more complex types.
-        """
-
-    @abstractmethod
-    def restruct(self, mapping, ztr):
-        """Structure the mapping into the appropriate type.
-
-        The Ztructurer doing the rebuilding is passed for its options and to
-        permit recursive rebuilding if needed.
-
-        Works with Ztructurer to rebuild more complext types.
-        """
-
-
 @attr.s
 class Zequence(_Ztype, Generic[T, R, D]):
-    item_type = attr.ib()  # type: Type[T]
+    item_type = attr.ib()  # type: Union[Type[T], _Ztype]
     restructure_factory = attr.ib(
         default=cast(Callable[[I_T], R], list)
     )  # type: Callable[[I_T], R]
@@ -72,11 +44,15 @@ class Zequence(_Ztype, Generic[T, R, D]):
 
     @apparent_type.default
     def default_apparent_type(self):
-        return MutableSequence[self.item_type]
+        # TODO: remove apparent types maybe?  or ship our own mypy plugin
+        itype = self.item_type
+        if isinstance(itype, _Ztype):
+            itype = itype.apparent_type
+        return MutableSequence[itype]
 
     def destruct(self, inst, ztr):
         if ztr.can_structure(self.item_type):
-            dez = ztr.destructure
+            dez = partial(ztr.destructure, type=self.item_type)
             return self.destructure_factory(dez(x) for x in inst)
         else:
             # TODO: are there conditions when we can just do `return inst`?
@@ -106,10 +82,13 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
     destructure_factory = attr.ib(
         default=cast(Callable[[I_KV], D], dict)
     )  # type: Callable[[I_KV], D]
+    apparent_type = attr.ib(default=MutableMapping)
 
     def destruct(self, inst, ztr):
-        ident = lambda x: x
-        dez = ztr.destructure if ztr.can_structure(self.val_type) else ident
+        if ztr.can_structure(self.val_type):
+            dez = partial(ztr.destructure, type=self.val_type)
+        else:
+            dez = lambda x: x
         return self.destructure_factory(
             (str(k), dez(v)) for k, v in inst.items()
         )
