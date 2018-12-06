@@ -151,22 +151,45 @@ capture_table_dct = {
 }
 
 
+if isinstance(range(1), list):
+    # Python 2 ``xrange`` does not implement ``__eq__`` itself
+    # We don't a fully featured range object, just one that serializes
+    @attr.s
+    class Range(object):
+        start = attr.ib()
+        stop = attr.ib()
+        step = attr.ib(default=1)
+
+        @stop.default
+        def _stop_default(self):
+            stop, self.start = self.start, 0
+            return stop
+else:
+    Range = range
+
+
+
+
 range_zerializer = Zerializer(
     lambda rng: [rng.start, rng.stop, rng.step],
-    lambda lst: range(*lst),
+    lambda lst: Range(*lst),
 )
 
 
 @attr.s
 class RangeContainer(object):
-    indices = attr.ib(type=range, metadata=zdata(range_zerializer))
-    identifiers = attr.ib(type=range, metadata=zdata(range_zerializer))
+    indices = attr.ib(type=dict, metadata=zdata(Zapping(int, range_zerializer)))
+    identifiers = attr.ib(type=dict,
+                          metadata=zdata(Zapping(str, Zequence(int))))
 
 
-range_container_obj = RangeContainer(range(1, 10), range(28, 21, -1))
+range_container_obj = RangeContainer(
+    {2: Range(1, 10), 4: Range(28, 21, -1)},
+    {'abc': [4, 5, 6, 9]},
+)
 range_container_dct = {
-    'indices': [1, 10, 1],
-    'identifiers': [28, 21, -1],
+    'indices': {'2': [1, 10, 1], '4': [28, 21, -1]},
+    'identifiers': {'abc': [4, 5, 6, 9]}
 }
 
 
@@ -180,6 +203,7 @@ example_ztructs = [
     (ColoredPants, bluepants_obj, bluepants_dct),
     (ColoredPants, redpants_obj, redpants_dct),
     (CaptureTable, capture_table_obj, capture_table_dct),
+    (RangeContainer, range_container_obj, range_container_dct),
 ]
 example_ztructs_with_directions = [
     [(typ, obj, dct, dir) for dir in ('destructure', 'restructure')]
