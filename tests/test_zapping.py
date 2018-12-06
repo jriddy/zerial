@@ -41,3 +41,51 @@ def test_restruct_simple_type(ztr):
     data = {1: 'a', 2: 'b', 3: 'c'}
     obj = zap.restruct(data, ztr)
     assert obj == data
+
+
+def test_destruct_nested_zapping_type(ztr):
+    zap = Zapping(int, Zapping(str, Counter))
+    inst = {
+        1: {
+            'a': Counter(3),
+            'r': Counter(9),
+        },
+        2: {},
+        -4: {
+            'some_string': Counter(4),
+        },
+    }
+    assert zap.destruct(inst, ztr) == {
+        '1': {
+            'a': {'state': 3},
+            'r': {'state': 9},
+        },
+        '2': {},
+        '-4': {
+            'some_string': {'state': 4},
+        },
+    }
+
+
+def test_restruct_nested_zapping_type(ztr):
+    zap = Zapping(int, Zapping(str, Counter))
+    data = {
+        '1': {
+            'a': {'state': 3},
+            'r': {'state': 9},
+        },
+        '2': {},
+        '-4': {
+            'some_string': {'state': 4},
+        },
+    }
+    assert zap.restruct(data, ztr) == {
+        1: {
+            'a': Counter(3),
+            'r': Counter(9),
+        },
+        2: {},
+        -4: {
+            'some_string': Counter(4),
+        },
+    }

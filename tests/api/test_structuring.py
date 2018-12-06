@@ -146,7 +146,7 @@ capture_table_dct = {
         },
         {
             '18': 'eighteen;S',
-        }
+        },
     ],
 }
 

@@ -1,5 +1,7 @@
 import attr
 
+from ._base import Ztype as _Ztype
+
 
 @attr.s
 class Ztructurer(object):
@@ -15,8 +17,10 @@ class Ztructurer(object):
         # type (str) -> str
         return self.metachar + key
 
-    def destructure(self, inst):
-        fields = attr.fields(inst.__class__)
+    def destructure(self, inst, type=None):
+        if isinstance(type, _Ztype):
+            return type.destruct(inst, self)
+        fields = attr.fields(inst.__class__ if type is None else type)
         ret = self.dict_factory()
         for field in fields:
             name = field.name
@@ -33,8 +37,10 @@ class Ztructurer(object):
                 raise TypeError("cannot destructure {!r}".format(value))
         return ret
 
-    def restructure(self, klass, mapping):
-        fields = attr.fields(klass)
+    def restructure(self, type, mapping):
+        if isinstance(type, _Ztype):
+            return type.restruct(mapping, self)
+        fields = attr.fields(type)
         kwargs = {}
         for field in fields:
             name = field.name
@@ -47,7 +53,7 @@ class Ztructurer(object):
                 kwargs[key] = self.restructure(field.type, data)
             else:
                 kwargs[key] = data
-        return klass(**kwargs)
+        return type(**kwargs)
 
     def can_pass_thru(self, val):
         return isinstance(val, self.permitted_passthrus)
