@@ -78,6 +78,36 @@ def test_zariant_of_complex_types(ztr):
     }
 
 
+def test_zariant_accepts_arbitrary_named_types(ztr):
+    int1, int2 = (type('int', (int,), {}) for _ in range(2))
+    # both are named "int"
+    zar = Zariant([
+        ('int', int1),
+        ('integer', int2),
+    ])
+    assert zar.destruct(int1(2), ztr) == {'%type': 'int', '%value': 2}
+    assert zar.destruct(int2(5), ztr) == {'%type': 'integer', '%value': 5}
+
+
+def test_zariant_restruct_from_dict_definition(ztr):
+    zar = Zariant({'ZZ': str, 'NN': int, 'GPN': GenericPersonalName})
+    datas = [
+        {'%type': 'ZZ', '%value': 'sts'},
+        {'%type': 'NN', '%value': 3},
+        {'%type': 'GPN', 'name': 'Joe'},
+    ]
+    assert [zar.restruct(data, ztr) for data in datas] == [
+        'sts',
+        3,
+        GenericPersonalName('Joe'),
+    ]
+
+
+def test_zariant_name_collision_errors(ztr):
+    with pytest.raises(TypeError):
+        Zariant([('str', type('str', (str,), {})), str])
+
+
 def test_zariant_restrucutres_simple_types(ztr):
     zar = Zariant([int, str])
     assert zar.restruct({'%type': 'int', '%value': 3}, ztr) == 3
