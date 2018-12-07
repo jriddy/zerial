@@ -1,5 +1,4 @@
 from enum import Enum, unique
-from collections.abc import Mapping
 from functools import partial
 from typing import (
     Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
@@ -9,7 +8,7 @@ from typing import (
 import attr
 
 from ._base import Ztype as _Ztype
-from ._compat import isconcretetype
+from ._compat import isconcretetype, Mapping
 
 
 def zdata(ztype):
@@ -160,6 +159,8 @@ class Zariant(_Ztype):
         type=Iterable[_ZariantRecord],
         converter=_check_convert_zariant_types,
     )
+    NO_DEFAULT = object()
+    default = attr.ib(default=NO_DEFAULT)
 
     _name = attr.ib(type=str)
 
@@ -173,6 +174,20 @@ class Zariant(_Ztype):
     def _make_enum(self):
         pairs = ((t.name, t.type) for t in self._type_records)
         return unique(Enum(self.name, pairs))
+
+    @default.validator
+    def _convert_default(self, _, value):
+        if value is self.NO_DEFAULT:
+            return
+        enum = self._enum
+        if isinstance(value, enum):
+            return
+        elif isinstance(value, str):
+            self.default = enum[value]
+        elif isinstance(value, type):
+            self.default = enum(value)
+        else:
+            raise TypeError("not a valid type for default: %r" % (value,))
 
     @property
     def name(self):
@@ -201,13 +216,23 @@ class Zariant(_Ztype):
             ])
 
     def restruct(self, data, ztr):
-        type_name = data[ztr.get_metakey('type')]
-        type_ = self._enum[type_name].value
+        try:
+            type_name = data[ztr.get_metakey('type')]
+        except (TypeError, KeyError):
+            if self.default is self.NO_DEFAULT:
+                raise
+            type_ = self.default.value
+            in_dict = False
+        else:
+            type_ = self._enum[type_name].value
+            in_dict = True
         if ztr.can_structure(type_):
             return ztr.restructure(type_, data)
-        else:
+        elif in_dict:
             # TODO: should we pass to type_ here?
             return data[ztr.get_metakey('value')]
+        else:
+            return data
 
     @property
     def apparent_type(self):

@@ -134,3 +134,9 @@ def test_zariant_restructures_complex_types(ztr):
 def test_zariant_gives_union_as_apparent_type():
     zar = Zariant([int, ClassicPersonalName, str])
     assert zar.apparent_type == Union[int, ClassicPersonalName, str]
+
+
+def test_default_type_zariant_simple_type(ztr):
+    zar = Zariant([int, str], default=str)
+    datas = ['xxx', {'%type': 'int', '%value': 4}]
+    assert [zar.restruct(data, ztr) for data in datas] == ['xxx', 4]

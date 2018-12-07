@@ -1,5 +1,10 @@
 from typing import Generic, TypeVar
 
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
+
 
 TypeVarMeta = type(TypeVar)
 if TypeVarMeta is type:
@@ -51,3 +56,10 @@ def with_metaclass(meta, *bases):
         def __prepare__(cls, name, this_bases):
             return meta.__prepare__(name, bases)
     return type.__new__(metaclass, 'temporary_class', (), {})
+
+
+__all__ = [
+    'isconcretetype',
+    'with_metaclass',
+    'Mapping',
+]
