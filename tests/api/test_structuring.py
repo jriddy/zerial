@@ -40,6 +40,7 @@ class NamedPlot(object):
         type=list,
         metadata=zdata(ztype=Zequence(Point3D)),
     )
+    ignored_field = attr.ib(init=False, cmp=False, repr=False)
 
 
 namedplot_obj = NamedPlot(
@@ -51,6 +52,7 @@ namedplot_obj = NamedPlot(
         Point3D(0., 0., 1.),
     ],
 )
+namedplot_obj.ignored_field = 'asfdklj'
 namedplot_dct = {
     'name': 'Bobo',
     'points': [
@@ -166,8 +168,6 @@ if isinstance(range(1), list):
             return stop
 else:
     Range = range
-
-
 
 
 range_zerializer = Zerializer(
