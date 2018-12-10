@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from typing import Any
 
 import attr
@@ -89,3 +90,19 @@ def test_restruct_nested_zapping_type(ztr):
             'some_string': Counter(4),
         },
     }
+
+
+def test_ordered_dict_zapping(ztr):
+    zap = Zapping(int, str, OrderedDict, list, extract_pairs=None)
+    od = OrderedDict([
+        (2, 'check'),
+        (5, 'the'),
+        (1, 'order'),
+    ])
+    data = zap.destruct(od, ztr)
+    assert data == [
+        ('2', 'check'),
+        ('5', 'the'),
+        ('1', 'order'),
+    ]
+    assert zap.restruct(data, ztr) == od

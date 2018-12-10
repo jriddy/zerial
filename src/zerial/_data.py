@@ -1,8 +1,9 @@
 from enum import Enum, unique
 from functools import partial
+from operator import methodcaller
 from typing import (
     Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
-    cast, Union, Tuple, MutableMapping
+    cast, Union, Tuple, MutableMapping,
 )
 
 import attr
@@ -82,6 +83,10 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
     destructure_factory = attr.ib(
         default=cast(Callable[[I_KV], D], dict)
     )  # type: Callable[[I_KV], D]
+    extract_pairs = attr.ib(
+        default=methodcaller('items'),
+        converter=lambda f: (lambda x: x) if f is None else f,
+    )
     apparent_type = attr.ib(default=MutableMapping)
 
     def destruct(self, inst, ztr):
@@ -98,8 +103,9 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
         valf = (ztr.restructure
                 if ztr.can_structure(Val) else
                 lambda _, x: Val(x))
+        ex_pairs = self.extract_pairs
         return self.restructure_factory(
-            (Key(k), valf(Val, v)) for k, v in mapping.items()
+            (Key(k), valf(Val, v)) for k, v in ex_pairs(mapping)
         )
 
 
