@@ -30,11 +30,12 @@ nosetests.xml
 # Translations
 *.mo
 
-# Mr Developer
+# Editors/IDEs
 .mr.developer.cfg
 .project
 .pydevproject
 /.idea
+/.vscode
 
 # Complexity
 output/*.html
