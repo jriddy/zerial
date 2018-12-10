@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 import attr
 
 from ._base import Ztype as _Ztype
@@ -12,6 +14,7 @@ class Ztructurer(object):
         bool, int, float, str,
     ))
     can_structure = attr.ib(default=attr.has)
+    is_serializable_field = attr.ib(default=attrgetter('init'))
 
     def get_metakey(self, key):
         # type (str) -> str
@@ -22,7 +25,7 @@ class Ztructurer(object):
             return type.destruct(inst, self)
         fields = attr.fields(inst.__class__ if type is None else type)
         ret = self.dict_factory()
-        for field in fields:
+        for field in filter(self.is_serializable_field, fields):
             name = field.name
             key = name.lstrip('_')
             value = getattr(inst, name)
@@ -42,7 +45,7 @@ class Ztructurer(object):
             return type.restruct(mapping, self)
         fields = attr.fields(type)
         kwargs = {}
-        for field in fields:
+        for field in filter(self.is_serializable_field, fields):
             name = field.name
             key = name.lstrip('_')
             data = mapping[key]

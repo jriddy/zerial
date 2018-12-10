@@ -1,14 +1,15 @@
 from enum import Enum, unique
 from functools import partial
+from operator import methodcaller
 from typing import (
     Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
-    cast, Union, Tuple, MutableMapping
+    cast, Union, Tuple, MutableMapping,
 )
 
 import attr
 
 from ._base import Ztype as _Ztype
-from ._compat import isconcretetype
+from ._compat import isconcretetype, Mapping
 
 
 def zdata(ztype):
@@ -82,6 +83,10 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
     destructure_factory = attr.ib(
         default=cast(Callable[[I_KV], D], dict)
     )  # type: Callable[[I_KV], D]
+    extract_pairs = attr.ib(
+        default=methodcaller('items'),
+        converter=lambda f: (lambda x: x) if f is None else f,
+    )
     apparent_type = attr.ib(default=MutableMapping)
 
     def destruct(self, inst, ztr):
@@ -98,8 +103,9 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
         valf = (ztr.restructure
                 if ztr.can_structure(Val) else
                 lambda _, x: Val(x))
+        ex_pairs = self.extract_pairs
         return self.restructure_factory(
-            (Key(k), valf(Val, v)) for k, v in mapping.items()
+            (Key(k), valf(Val, v)) for k, v in ex_pairs(mapping)
         )
 
 
@@ -116,46 +122,86 @@ class Zerializer(_Ztype, Generic[T, U]):
         return self.to_inner(data)
 
 
+@attr.s(slots=True)
+class _ZariantRecord(object):
+    type = attr.ib(type=type)
+    name = attr.ib(type=str)
+
+    @name.default
+    def _default_name(self):
+        return self.type.__name__
+
+    @type.validator
+    def _validate_type(self, _, type_):
+        if not isconcretetype(type_):
+            raise TypeError(
+                "Zariant requires concrete types, %s is not" % (type_,)
+            )
+
+    @classmethod
+    def from_type_or_tuple(cls, tot):
+        if isinstance(tot, type):
+            return cls(tot)
+        else:
+            name, type_ = tot
+            return cls(type_, name)
+
+
 def _check_convert_zariant_types(types):
     """Do the type validation before we even get anywhere.
 
     Nothing else in Zariant makes sense without sound types.
     """
-    types = tuple(types)
-    if len(types) < 2:
+    types = types.items() if isinstance(types, Mapping) else tuple(types)
+    type_records = tuple(map(_ZariantRecord.from_type_or_tuple, types))
+    if len(type_records) < 2:
         raise ValueError("Zariant requires at least 2 types.")
-    for t in types:
-        if not isconcretetype(t):
-            raise TypeError(
-                "Zariant requires concrete types, %s is not" % (t,)
-            )
-    return types
+    return type_records
 
 
 @attr.s
 class Zariant(_Ztype):
-    types = attr.ib(
-        type=Iterable[Type],
+    _type_records = attr.ib(
+        type=Iterable[_ZariantRecord],
         converter=_check_convert_zariant_types,
     )
+    NO_DEFAULT = object()
+    default = attr.ib(default=NO_DEFAULT)
 
     _name = attr.ib(type=str)
 
     @_name.default
     def _gen_name(self):
-        return 'Zenum___' + '__'.join(t.__name__ for t in self.types)
+        return 'Zenum___' + '__'.join(t.name for t in self._type_records)
 
     _enum = attr.ib(type=Enum)
 
     @_enum.default
     def _make_enum(self):
-        types = self.types
-        pairs = ((t.__name__, t) for t in types)
+        pairs = ((t.name, t.type) for t in self._type_records)
         return unique(Enum(self.name, pairs))
+
+    @default.validator
+    def _convert_default(self, _, value):
+        if value is self.NO_DEFAULT:
+            return
+        enum = self._enum
+        if isinstance(value, enum):
+            return
+        elif isinstance(value, str):
+            self.default = enum[value]
+        elif isinstance(value, type):
+            self.default = enum(value)
+        else:
+            raise TypeError("not a valid type for default: %r" % (value,))
 
     @property
     def name(self):
         return self._name
+
+    @property
+    def types(self):
+        return tuple(t.type for t in self._type_records)
 
     def _force_type(self, value):
         if not isinstance(value, self.types):
@@ -176,13 +222,23 @@ class Zariant(_Ztype):
             ])
 
     def restruct(self, data, ztr):
-        type_name = data[ztr.get_metakey('type')]
-        type_ = self._enum[type_name].value
+        try:
+            type_name = data[ztr.get_metakey('type')]
+        except (TypeError, KeyError):
+            if self.default is self.NO_DEFAULT:
+                raise
+            type_ = self.default.value
+            in_dict = False
+        else:
+            type_ = self._enum[type_name].value
+            in_dict = True
         if ztr.can_structure(type_):
             return ztr.restructure(type_, data)
-        else:
+        elif in_dict:
             # TODO: should we pass to type_ here?
             return data[ztr.get_metakey('value')]
+        else:
+            return data
 
     @property
     def apparent_type(self):
