@@ -42,7 +42,7 @@ coverage:
 docs:
 	rm -f docs/zerial.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ zerial
+	sphinx-apidoc -o docs/ src/zerial
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	open docs/_build/html/index.html
