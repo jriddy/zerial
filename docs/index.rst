@@ -13,6 +13,7 @@ Contents:
 
    installation
    usage
+   zerial
    contributing
    authors
    history

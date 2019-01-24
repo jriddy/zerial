@@ -2,14 +2,15 @@ from enum import Enum, unique
 from functools import partial
 from operator import methodcaller
 from typing import (
-    Type, Generic, Callable, TypeVar, Iterable, MutableSequence, Sequence,
+    Type, Generic, Callable, TypeVar, Iterable, MutableSequence,
+    Sequence as TSequence,
     cast, Union, Tuple, MutableMapping,
 )
 
 import attr
 
 from ._base import Ztype as _Ztype
-from ._compat import isconcretetype, Mapping
+from ._compat import isconcretetype, Mapping as TMapping
 
 
 def zdata(ztype):
@@ -24,8 +25,8 @@ def zdata(ztype):
 
 T = TypeVar('T')
 U = TypeVar('U')
-R = TypeVar('R', bound=Sequence)
-D = TypeVar('D', bound=Sequence)
+R = TypeVar('R', bound=TSequence)
+D = TypeVar('D', bound=TSequence)
 K = TypeVar('K')
 V = TypeVar('V')
 I_T = Iterable[T]
@@ -33,7 +34,26 @@ I_KV = Iterable[Tuple[K, V]]
 
 
 @attr.s
-class Zequence(_Ztype, Generic[T, R, D]):
+class Sequence(_Ztype, Generic[T, R, D]):
+    """Metadata type for a sequence of items.
+
+    Handles any version of N number of items of type T.  Works for sets,
+    tuples, lists, and anything else that follows that interface.
+
+    :attribute item_type: The type of the object contained in this sequence.
+        Note that this can itself be another complex object or another Ztype,
+        so these data types can be arbitrarily nested.
+
+    :attribute restructure_factory: The callable that will convert a stored
+        sequence into a live data type.  Basically, the function that can
+        rebuild your data into the collection type you want.
+
+    :attribute destructure_factory: The callable that will convert a live
+        sequence into storage data.  Normally this will always be list,
+        unless your serialization format supports other sequence types.
+
+    :attribute apparent_type:  To be deprecated
+    """
     item_type = attr.ib()  # type: Union[Type[T], _Ztype]
     restructure_factory = attr.ib(
         default=cast(Callable[[I_T], R], list)
@@ -68,12 +88,56 @@ class Zequence(_Ztype, Generic[T, R, D]):
 
 
 @attr.s
-class Zapping(_Ztype, Generic[K, V, R, D]):
+class Mapping(_Ztype, Generic[K, V, R, D]):
     """Ztype wrapper for a simple mapping/dict
 
     Since many serialization formats require that keys for mappings be strings,
     we require that the key_type be convertible to-and-from string.  This
     limits us to pretty primitive types, like int and str.
+
+    :attribute key_type: The type of the keys of the mapping.  Currently only
+        supports types that can do a straight-forward one-to-one convertion to
+        and from ``str``.
+
+    :attribute val_type: The type of the values of the mapping.  Can be any
+        type that will can be serialized, including other :class:`Ztype`
+        objects, allowing arbirarily complex value types.
+
+    :attribute restructure_factory:  The container type that will be used to
+        rebuild your data type upon being restructured.  It will be called with
+        an iterable of key-value pairs. The default is dict, but if you want,
+        say, a :class:`collections.defaultdict` to come out with a default
+        function of ``int``, you could give this::
+
+            @zerial.record
+            @attr.s
+            class MyRecord:
+                my_field = attr.ib(
+                    type=typing.Mapping[str, int],
+                    metadata=zerial.data(zerial.Mapping(
+                        str, int, partial(defaultdict, int)
+                    )),
+                )
+
+        This will result in ``my_field`` being restructured ready for you to do
+        all the fun ``defaultdict`` stuff you've always wanted to do like
+        ``my_record.my_field[arbitrary_key] += 1``, because ``zerial`` ensures
+        that it gets restructured that way.
+
+    :attribute destructure_factory:  The container type that will be used to
+        take apart your data to destructure it.  Can be useful if your mapping
+        is ordered, in which case you'd want to save it as a ``list`` to
+        preserve the order even in a serialized dict.  This feature is
+        unstable and may be replaced by something more sophisticated in the
+        future.
+
+    :attribute extract_pairs:  Function to extract item pairs from the object
+        created by ``destructure_factory``.  By default, this calls
+        ``.items()`` on the object it receives, but if you were to destructure
+        into a ``list``, you'll need to pass ``None`` here (which is converted
+        to the identity function ``lambda x: x``) since a list of pairs is
+        already, well, a list of pairs.  This feature is unstable and may be
+        replaced by something better in the future.
     """
     key_type = attr.ib(type=Type[K])
     val_type = attr.ib(type=Type[V])
@@ -110,8 +174,34 @@ class Zapping(_Ztype, Generic[K, V, R, D]):
 
 
 @attr.s
-class Zerializer(_Ztype, Generic[T, U]):
-    """When you just need a serializer that goes forward and back."""
+class Serializer(_Ztype, Generic[T, U]):
+    """When you just need a serializer that goes forward and back.
+
+    :attribute to_outer: Function that destructures the data.
+    :attribute to_inner: Function that restructures the data.
+
+    If the other metadata types fail, or there are obvious standard string
+    representations of your data type (like in dates), you can just use a
+    :class:`Serializer` to take care of it for you::
+
+        import datetime
+
+        @zerial.record
+        @attr.s
+        class ImportantDate:
+            name = attr.ib(type=str)
+            date = attr.ib(
+                type=datetime.date,
+                metadata=zerial.data(zerial.Serializer(
+                    lambda d: d.isoformat(),
+                    lambda s: datetime.datetime.strptime(s, '%Y-%m-%d').date(),
+                )),
+            )
+
+    It doesn't necessarily have to be a string either.  If your mapping variant
+    is too complex for :class:`Mapping`, then you could use this class as a
+    last resort for defining a method of destructuring it.
+    """
     to_outer = attr.ib(type=Callable[[T], U])
     to_inner = attr.ib(type=Callable[[U], T])
 
@@ -152,7 +242,7 @@ def _check_convert_zariant_types(types):
 
     Nothing else in Zariant makes sense without sound types.
     """
-    types = types.items() if isinstance(types, Mapping) else tuple(types)
+    types = types.items() if isinstance(types, TMapping) else tuple(types)
     type_records = tuple(map(_ZariantRecord.from_type_or_tuple, types))
     if len(type_records) < 2:
         raise ValueError("Zariant requires at least 2 types.")
@@ -160,7 +250,33 @@ def _check_convert_zariant_types(types):
 
 
 @attr.s
-class Zariant(_Ztype):
+class Variant(_Ztype):
+    """Variant that allows multiple types to occupy the same attribute slot.
+
+    This is an implementation of a sum type (called enums or variants,
+    depending on the source) for serialization.  It allows multiple types to be
+    saved in the same slot, and deserialized intelligently into the correct
+    type.  It accomplishes this by storing a name corresponding to the type
+    along with the type information.
+
+    :attribute _type_records: Iterable of types, or a mapping of names to
+        types.  The types should be concrete types, in the sense that they can
+        instantiate a real object of their class from provided data.  They are
+        treated as invariant.  If you have multiple subclasses of a type, they
+        must all be specified here.  The ``Variant`` has to be able to store
+        the type in the destructured data and consistently map it to the
+        desired runtime type in the restuctured model, so it needs a full
+        accounting of which types are available to it at definition time.  If
+        passed a mapping, the keys are taken as the type names.  If passed a
+        plain iterable, the type names are taken from the ``__name__``
+        attribute of the class.  Collisions are invalid, so if you have two
+        types with the same ``__name__``, use a mapping to give them unique
+        names in this context.
+
+    :attribute default: Default type to use if no type information is found in
+        the destructured data.  This permits previously non-variant field to
+        become variants without invalidating previously saved data.
+    """
     _type_records = attr.ib(
         type=Iterable[_ZariantRecord],
         converter=_check_convert_zariant_types,
@@ -264,3 +380,10 @@ class Zendthru(_Ztype):
     def restruct(self, data, _ztr):
         self._check_type(data)
         return data
+
+
+# TODO: remove renames when code is audited
+Zequence = Sequence
+Zapping = Mapping
+Zerializer = Serializer
+Zariant = Variant

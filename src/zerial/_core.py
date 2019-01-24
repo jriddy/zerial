@@ -60,3 +60,15 @@ class Ztructurer(object):
 
     def can_pass_thru(self, val):
         return isinstance(val, self.permitted_passthrus)
+
+    def record(self, cls):
+        # type: (type) -> type
+        """
+        Decorator to indicate that a class is serializable
+
+        Currently does nothing special, but in the future it may be used to
+        add automated features, and could potentially become required to
+        serialize objects in certain contexts.
+        """
+        cls.__zerial_record__ = True
+        return cls

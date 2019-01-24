@@ -10,12 +10,12 @@ zerial
 
 .. _attrs: http://www.attrs.org/en/stable/
 
-Zerial is the serialization tool that allows your model classes to be the Zingle
-Zource of Truth™ for your project.  Let your model classes take whatever form
-or use whatever collection types they need, and just use metadata to define
-how that text gets serialized.  With support for variant record types, you can
-even evolve your data models over time, and even create versioned models if
-need be.
+Zerial is the serialization tool that allows your model classes to be the
+Zingle Zource of Truth™ for your project.  Let your model classes take
+whatever form or use whatever collection types they need, and just use metadata
+to define how that text gets serialized.  With support for variant record
+types, you can even evolve your data models over time, and even create
+versioned models if need be.
 
 Zerial is built on top of the excellent attrs_ library, which makes class
 creation and definition in Python very easy and very obvious.  This library
@@ -59,6 +59,8 @@ Features
 Todo/Roadmap
 ------------
 1. Optional native support for numpy arrays
-2. No dependency on typing library (use type stubs only)
+2. Export of schema definition formats from record classes
 3. Debug tools for destructure/restructure failures
 4. Wrappers around ``attr.s`` and ``attr.ib`` to make defining models cleaner
+5. Better automated checking and testing tools for serializability
+6. More extensive documentation
