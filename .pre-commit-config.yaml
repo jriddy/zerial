@@ -3,7 +3,7 @@ repos:
     rev: v1.2.3
     hooks:
     -   id: trailing-whitespace
-    -   id: end-of-file-fixer
+    #-   id: end-of-file-fixer
     -   id: check-json
     -   id: check-yaml
     -   id: requirements-txt-fixer
