@@ -48,6 +48,9 @@ class Ztructurer(object):
         for field in filter(self.is_serializable_field, fields):
             name = field.name
             key = name.lstrip('_')
+            # defer asserting the key's existence until the constructing the object
+            if key not in mapping:
+                continue
             data = mapping[key]
             ztype = field.metadata.get('zerial.ztype')
             if ztype is not None:

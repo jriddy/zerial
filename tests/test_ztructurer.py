@@ -1,8 +1,6 @@
 import attr
 import pytest
 
-from zerial._core import Ztructurer
-
 
 @pytest.mark.parametrize('val', [
     1, 1., '', True, False,
@@ -58,3 +56,17 @@ def test_format_field_name(ztr):
     }
     assert ztr.destructure(ex2_obj) == ex2_dct
     assert ztr.restructure(Ex2, ex2_dct) == ex2_obj
+
+
+@attr.s
+class Ex1Prime(object):
+    x = attr.ib()
+    y = attr.ib()
+    z = attr.ib(default=0)
+
+
+def test_can_restucture_added_field(ztr):
+    ex1 = Ex1(1, 2)
+    dct = ztr.destructure(ex1)
+    exp = Ex1Prime(1, 2, 0)
+    assert ztr.restructure(Ex1Prime, dct) == exp
