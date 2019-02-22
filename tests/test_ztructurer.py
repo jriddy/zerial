@@ -1,8 +1,6 @@
 import attr
 import pytest
 
-from zerial._core import Ztructurer
-
 
 @pytest.mark.parametrize('val', [
     1, 1., '', True, False,
