@@ -3,7 +3,7 @@ from ._core import Ztructurer
 
 __author__ = 'Josh Reed'
 __email__ = 'jriddy@gmail.com'
-__version__ = '0.1.10'
+__version__ = '0.2.0'
 
 
 _the_ztructurer = Ztructurer()

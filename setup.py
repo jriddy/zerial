@@ -35,7 +35,7 @@ dev_require = numpy_require + tests_require + docs_require + release_require
 
 setup(
     name='zerial',
-    version='0.1.10',
+    version='0.2.0',
     description='Stuct and destructure complex classes',
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author='Josh Reed',
