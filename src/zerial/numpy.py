@@ -33,8 +33,6 @@ if sys.version_info >= (3, 0):
             return x.decode()
         else:
             return str(x)
-
-    buffer_to_ndarray = np.frombuffer
 else:
     numpy_required_passthrus = DEFAULT_PASSTHRUS
 
@@ -47,14 +45,14 @@ else:
 
     num_to_bytes = lambda obj: memoryview(obj.data)
 
-    buffer_to_ndarray = lambda v, *xs, **kw: np.frombuffer(
-        v.tobytes() if isinstance(v, memoryview) else v,
-        *xs,
-        **kw
-    )
+    tostr = lambda x: x
 
-    def tostr(x):
-        return x
+
+def buffer_to_ndarray(v, *xs, **kw):
+    v = v.tobytes() if isinstance(v, memoryview) else v
+    # We have to copy to get an "owned", writable array
+    # TODO: find a better way around this that isn't as expensive
+    return np.frombuffer(v, *xs, **kw).copy()
 
 
 @attr.s
